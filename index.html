@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+<head>
+  <meta charset=utf-8 />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Greenlight Restaurant Portal</title>
+
+  <!-- Material Design Theming -->
+  <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue_grey-green.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  
+  <style>
+  header {
+    background-color:#00e676!important;
+  }
+  .logo {
+    width:300px;
+  }
+  .demo-card-wide.mdl-card {
+    width: 512px;
+  }
+  .demo-card-wide > .mdl-card__title {
+    color: #fff;
+    height: 176px;
+    background-color:#00e676;
+    background-position: center;
+    background-size:cover;
+  }
+  .demo-card-wide > .mdl-card__menu {
+    color: #fff;
+  }
+  .mdl-chip {
+    height: 32px;
+    font-family: "Roboto","Helvetica","Arial",sans-serif;
+    line-height: 32px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 16px;
+    background-color: #dedede;
+    display: inline-block;
+    color: rgba(0,0,0,.87);
+    margin: 2px 0;
+    font-size: 0;
+    white-space: nowrap;
+}
+.mdl-chip__text {
+    font-size: 13px;
+    vertical-align: middle;
+    display: inline-block;
+}
+.mdl-textfield__input {
+    font-size: 1rem;
+    padding: 16px;
+}
+.mdl-data-table th {
+  text-align:left;
+  background:#00e676;
+  color:#fff;
+}
+#quickstart-sign-in-status {
+  margin-left:15px;
+}
+#intro_text {
+  text-align:center;
+  width:100%;
+}
+#instructions {
+  padding:15px;
+}
+#table1 {
+  display:none;
+}
+#login-area {
+  text-align:center;
+}
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+  <!-- <link rel="stylesheet" href="main.css"> -->
+
+  <!-- Import and configure the Firebase SDK -->
+  <!-- These scripts are made available when the app is served or deployed on Firebase Hosting -->
+  <!-- If you do not serve/host your project using Firebase Hosting see https://firebase.google.com/docs/web/setup -->
+  <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase-auth.js"></script>
+
+  <script type="text/javascript">
+    // Initialize Firebase
+    // TODO: Replace with your project's customized code snippet
+    var config = {
+      apiKey: "AIzaSyAXY8wIYsEhL1M0oNZIZ5-Ssx35B8n6xSc",
+      authDomain: "greenlight-dining.firebaseapp.com",
+      databaseURL: "https://greenlight-dining.firebaseio.com",
+      projectId: "greenlight-dining",
+      storageBucket: "greenlight-dining.appspot.com",
+      messagingSenderId: "971281383517"
+    };
+    firebase.initializeApp(config);
+    /**
+     * Handles the sign in button press.
+     */
+    function toggleSignIn() {
+      if (firebase.auth().currentUser) {
+        // [START signout]
+        firebase.auth().signOut();
+        // [END signout]
+      } else {
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        if (email.length < 4) {
+          alert('Please enter an email address.');
+          return;
+        }
+        if (password.length < 4) {
+          alert('Please enter a password.');
+          return;
+        }
+        // Sign in with email and pass.
+        // [START authwithemail]
+        firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          // [START_EXCLUDE]
+          if (errorCode === 'auth/wrong-password') {
+            alert('Wrong password.');
+          } else {
+            alert(errorMessage);
+          }
+          console.log(error);
+          document.getElementById('quickstart-sign-in').disabled = false;
+          // [END_EXCLUDE]
+        });
+        // [END authwithemail]
+      }
+      document.getElementById('quickstart-sign-in').disabled = true;
+    }
+
+    /**
+     * Handles the sign up button press.
+     */
+    function handleSignUp() {
+      var email = document.getElementById('email').value;
+      var password = document.getElementById('password').value;
+      if (email.length < 4) {
+        alert('Please enter an email address.');
+        return;
+      }
+      if (password.length < 4) {
+        alert('Please enter a password.');
+        return;
+      }
+      // Sign in with email and pass.
+      // [START createwithemail]
+      firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // [START_EXCLUDE]
+        if (errorCode == 'auth/weak-password') {
+          alert('The password is too weak.');
+        } else {
+          alert(errorMessage);
+        }
+        console.log(error);
+        // [END_EXCLUDE]
+      });
+      // [END createwithemail]
+    }
+
+    /**
+     * Sends an email verification to the user.
+     */
+    function sendEmailVerification() {
+      // [START sendemailverification]
+      firebase.auth().currentUser.sendEmailVerification().then(function() {
+        // Email Verification sent!
+        // [START_EXCLUDE]
+        alert('Email Verification Sent!');
+        // [END_EXCLUDE]
+      });
+      // [END sendemailverification]
+    }
+
+    function sendPasswordReset() {
+      var email = document.getElementById('email').value;
+      // [START sendpasswordemail]
+      firebase.auth().sendPasswordResetEmail(email).then(function() {
+        // Password Reset Email Sent!
+        // [START_EXCLUDE]
+        alert('Password Reset Email Sent!');
+        // [END_EXCLUDE]
+      }).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // [START_EXCLUDE]
+        if (errorCode == 'auth/invalid-email') {
+          alert(errorMessage);
+        } else if (errorCode == 'auth/user-not-found') {
+          alert(errorMessage);
+        }
+        console.log(error);
+        // [END_EXCLUDE]
+      });
+      // [END sendpasswordemail];
+    }
+
+    /**
+     * initApp handles setting up UI event listeners and registering Firebase auth listeners:
+     *  - firebase.auth().onAuthStateChanged: This listener is called when the user is signed in or
+     *    out, and that is where we update the UI.
+     */
+    function renderVendor() {
+      var url = "https://app.greenlightdining.com/api/vendors/sample@gmail.com";
+      fetch(url)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        var vendor = document.getElementById('vendor');
+        vendor.style.display = 'block';
+        $('.login-item').css({'display':'none'});
+        document.getElementById('table1').style.display = 'block';
+        document.getElementById('calculator').style.display = 'block';
+        document.getElementById('intro_text').style.display = 'none';
+        document.getElementById('vendor_id').value = data._id;
+        document.getElementById('vendor_name').innerHTML = data.name;
+        // document.getElementById('vendor_email').innerHTML = data.email;
+        document.getElementById('vendor_capacity').value = data.capacity;
+        if (data.capacity == 0) {
+          $('#greenlight_circle').css({ fill: "#999" });
+          document.getElementById('tables_available').innerHTML = "Tables are not available";
+        } else {
+          $('#greenlight_circle').css({ fill: "#00e676" });
+          document.getElementById('tables_available').innerHTML = "Tables are available";
+        }
+        document.getElementById('vendor_cuisine').innerHTML = data.cuisine;
+        document.getElementById('vendor_price').innerHTML = data.price;
+        document.getElementById('vendor_image').style.backgroundImage = "url("+data.image+")";
+        var html = "<div>"+JSON.stringify(data)+"</div>";
+        fetchOrders();
+        // var vendorData = document.getElementById('vendor_data');
+        // vendorData.innerHTML = html;
+        // console.log(JSON.stringify(myJson));
+      });
+    }
+    function destroyVendor() {
+        document.getElementById('vendor').style.display = 'none';
+        document.getElementById('table1').style.display = 'none';
+        document.getElementById('calculator').style.display = 'none';
+        document.getElementById('intro_text').style.display = 'block';
+        $('.login-item').css({'display':'inline'});
+        // document.getElementById('vendor_id').value = data._id;
+        // document.getElementById('vendor_name').innerHTML = data.name;
+        // // document.getElementById('vendor_email').innerHTML = data.email;
+        // document.getElementById('vendor_capacity').value = data.capacity;
+        // document.getElementById('tables_available').innerHTML = "Login to set availability";
+        // document.getElementById('vendor_cuisine').innerHTML = data.cuisine;
+        // document.getElementById('vendor_price').innerHTML = data.price;
+        // document.getElementById('vendor_image').style.backgroundImage = "url("+data.image+")";
+        // var vendor = document.getElementById('vendor');
+        // var html = "";
+        // vendor.innerHTML = html;
+    }
+    function updateCapacity(capacity) {
+      var capacity = document.getElementById('vendor_capacity').value;
+      var id = document.getElementById('vendor_id').value;
+      fetch(`https://app.greenlightdining.com/api/vendors/${id}/update/${capacity}`, { method: 'PUT' })
+      .then(res => {
+        // document.getElementById('capacity-'+index).innerHTML = capacity;
+        if (capacity == 0) {
+          $('#greenlight_circle').css({ fill: "#999" });
+          document.getElementById('tables_available').innerHTML = "Tables are not available";
+        } else {
+          $('#greenlight_circle').css({ fill: "#00e676" });
+          document.getElementById('tables_available').innerHTML = "Tables are available";
+        }
+        console.log("Table capacity has been updated");
+        alert("Success! Capacity updated.");
+        // window.location.reload();
+        // return res.json();
+        // this._modifyVendor(index, null);
+      })
+      .catch(err => {
+        alert(err);
+      });
+    }
+    function fetchOrders() {
+      var id = document.getElementById('vendor_id').value;
+      fetch('https://app.greenlightdining.com/api/orders/'+id)
+      .then(res => res.json())
+      .then(data => {
+        // this.setState({
+        //   orders: json
+        // });
+        data = data.reverse();
+        var tbody = $("<tbody />"),tr;
+        $.each(data,function(_,obj) {
+            tr = $("<tr />");
+            tr.append("<td class='mdl-data-table__cell--non-numeric'>"+obj.userId+"</td>");
+            tr.append("<td class='mdl-data-table__cell--non-numeric'>"+obj.promoCode+"</td>");
+            tr.append("<td class='mdl-data-table__cell--non-numeric'>"+obj.numberOfGuests+"</td>");
+            var dt = new Date(+obj.timestamp).toString();
+            tr.append("<td class='mdl-data-table__cell--non-numeric'>"+dt+"</td>");
+            tr.appendTo(tbody);
+        });
+        tbody.appendTo("#table1"); // only DOM insertion
+
+        // console.log(data);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    }
+    function initApp() {
+      // Listening for auth state changes.
+      // [START authstatelistener]
+      firebase.auth().onAuthStateChanged(function(user) {
+        // [START_EXCLUDE silent]
+        // document.getElementById('quickstart-verify-email').disabled = true;
+        // [END_EXCLUDE]
+        if (user) {
+          window.loggedIn = true;
+          console.log('logged in');
+          renderVendor();
+          // User is signed in.
+          var displayName = user.displayName;
+          var email = user.email;
+          var emailVerified = user.emailVerified;
+          var photoURL = user.photoURL;
+          var isAnonymous = user.isAnonymous;
+          var uid = user.uid;
+          var providerData = user.providerData;
+          // [START_EXCLUDE]
+          document.getElementById('quickstart-sign-in-status').textContent = 'Logged in as '+email;
+          document.getElementById('quickstart-sign-in').textContent = 'Sign out';
+          // document.getElementById('quickstart-account-details').textContent = JSON.stringify(user, null, '  ');
+          if (!emailVerified) {
+            // document.getElementById('quickstart-verify-email').disabled = false;
+          }
+          // [END_EXCLUDE]
+        } else {
+          destroyVendor();
+          window.loggedIn = false;
+          console.log('not logged in');
+          // User is signed out.
+          // [START_EXCLUDE]
+          document.getElementById('quickstart-sign-in-status').textContent = 'Logged out';
+          document.getElementById('quickstart-sign-in').textContent = 'Sign in';
+          // document.getElementById('quickstart-account-details').textContent = 'null';
+          // [END_EXCLUDE]
+        }
+        // [START_EXCLUDE silent]
+        document.getElementById('quickstart-sign-in').disabled = false;
+        // [END_EXCLUDE]
+      });
+      // [END authstatelistener]
+      document.querySelector('#password').addEventListener('keypress', function (e) {
+          var key = e.which || e.keyCode;
+          if (key === 13) { // 13 is enter
+            $('#quickstart-sign-in').click();
+          }
+      });
+      document.getElementById('quickstart-sign-in').addEventListener('click', toggleSignIn, false);
+      // document.getElementById('quickstart-sign-up').addEventListener('click', handleSignUp, false);
+      // document.getElementById('quickstart-verify-email').addEventListener('click', sendEmailVerification, false);
+      // document.getElementById('quickstart-password-reset').addEventListener('click', sendPasswordReset, false);
+    }
+
+    window.onload = function() {
+      initApp();
+    };
+  </script>
+</head>
+<body>
+<div class="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-header">
+
+  <!-- Header section containing title -->
+  <header class="mdl-layout__header mdl-color-text--white">
+    <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--6-col-desktop">
+        <a href="/"><img src="http://greenlightdining.com/images/gld-light-2019.svg" class="logo"></a>
+      </div>
+      <div id="login-area" class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--6-col-desktop">
+          <input class="mdl-textfield__input login-item" style="display:inline;width:auto;" type="text" id="email" name="email" placeholder="Email" style="margin-bottom:15px;"/>
+          <input class="mdl-textfield__input login-item" style="display:inline;width:auto;" type="password" id="password" name="password" placeholder="Password" style="margin-bottom:15px;display:block;"/>
+          <button disabled class="mdl-button mdl-js-button mdl-button--raised" id="quickstart-sign-in" name="signin" style="display:block;margin: 20px auto 0;">Sign In</button>
+      </div>
+    </div>
+  </header>
+  <main class="mdl-layout__content mdl-color--grey-100">
+    <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
+
+      <!-- <div class="mdl-card__title mdl-color--light-blue-600 mdl-color-text--white">
+        <h2 class="mdl-card__title-text">Greenlight Restaurant Partner</h2>
+      </div> -->
+      <div id="intro_text" class="welcome-area mdl-card__title">
+          <h3>Welcome to the Greenlight Dining Restaurant Portal.</h3>
+          
+          <p>To sign up, download the app at <a href="http://greenlightdining.com/#download">http://greenlightdining.com/</a>.</p>
+          
+          <p>Restaurant owners/managers can email <a href="app@greenlightdining.com">app@greenlightdining.com</a> or call 561-360-2200</p>
+          </div>
+
+      <div id="vendor_data" class="mdl-card__supporting-text mdl-color-text--grey-600">
+      </div>
+      <div id="vendor" class="demo-card-wide mdl-card mdl-shadow--2dp" style="display:none;">
+        <div id="instructions">
+          <p>Welcome to Greenlight Dining! To add or change the number of available tables, type in the capacity, separated by a comma. For example, to add two tables of 4 and a table of 2, you would type in <code>4,4,2</code> and then click <code>Edit Capacity</code>. To set available tables to none, type in 0 or leave it blank and then click <code>Edit Capacity</code>.</p>
+        </div>
+          <input id="vendor_id" type="hidden">
+          <div id="vendor_image" class="mdl-card__title">
+              <h2 id="vendor_name" class="mdl-card__title-text"></h2>
+              <!-- <h4 id="vendor_email" class="mdl-card__title-text"></h2> -->
+          </div>
+          <div id="vendor_cuisine" class="mdl-card__supporting-text">
+            cuisine
+          </div>
+          <div id="vendor_price" class="mdl-card__supporting-text">
+            price
+          </div>
+          <input id="vendor_capacity" class="mdl-textfield__input" placeholder="Capacity is displayed here..." type="text">
+          <span id="vendor_tables" class="mdl-chip" style="width: 250px;margin: 15px auto;">
+              <svg height="16" width="16"><circle cx="8" cy="8" r="6" fill="#00e676" id="greenlight_circle"></circle></svg>
+              <span class="mdl-chip__text" id="tables_available">Tables are available</span>
+          </span>
+          <div class="mdl-card__actions mdl-card--border">
+            <a onclick="updateCapacity();" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+              Edit Capacity
+            </a>
+          </div>
+          <!-- <div class="mdl-card__actions mdl-card--border">
+            <a onclick="fetchOrders();" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+              Fetch Greenlights
+            </a>
+          </div> -->
+          <div class="mdl-card__menu">
+            <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+              <i class="material-icons">share</i>
+            </button>
+          </div>
+      </div>
+      
+    </div>
+      <table id="table1" class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+        <thead class="mdl-data-table__cell--non-numeric" style="text-align:left;">
+            <th>Email</th>
+            <th>Promo Code</th>
+            <th>Number in Party</th>
+            <th>Timestamp</th>
+        </thead>
+      </table>
+      <iframe src="https://greenlightdining.com/calculator" width="339px" height="552px" id="calculator" style="width:340px;padding: 50px 0;display:none;"> </iframe>
+  </main>
+  <footer style="padding:10px;">
+      <div id="quickstart-sign-in-status" style="float:left;"></div>
+      <div id="google_translate_element" style="float:right"></div><script type="text/javascript">
+        function googleTranslateElementInit() {
+          new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
+        </script><script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+        
+  </footer>
+</div>
+</body>
+</html>
